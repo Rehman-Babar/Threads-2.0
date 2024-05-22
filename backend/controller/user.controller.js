@@ -10,50 +10,59 @@ export const signupUser = async(req, res)=> {
     try {
         const {fullName, userName, email, password} = req.body;
         
+        // Log the received request body for debugging
+        // console.log('Request body:', req.body);
+        console.log(userName);
+
+        // Check for missing fields
         if (!fullName || !userName || !email || !password) {
-            console.log('some thing missing');
-            return res.status(400).json({error:'please fill all fields'})
-            
+            console.log('Some fields are missing');
+            return res.status(400).json({error: 'Please fill all fields'});
         }
 
-        const user = await User.findOne({$or:[{userName}, {email}]});
-        if(user){
-            return res.status(400).json({error:'User already exist'})
+        // Check if the user already exists
+        const user = await User.findOne({$or: [{userName}, {email}]});
+        if(user) {
+            return res.status(400).json({error: 'User already exists'});
         }
 
-        const salt =await bcrypt.genSalt(8);
-        const hashpassword = await bcrypt.hash(password, salt)
+        // Hash the password
+        const salt = await bcrypt.genSalt(8);
+        const hashpassword = await bcrypt.hash(password, salt);
 
-        const newUser = User({
+        // Create a new user
+        const newUser = new User({
             fullName,
             userName,
             email,
             password: hashpassword,
-            
-        })
-        await newUser.save();
-        console.log({message:"Signup done!!!!!!!!!"});
-        if (newUser) {
-            jwttokenAndSetCookie(newUser._id, res)
-            res.status(201)
-            .json({
-                _id:newUser._id,
-                fullName:newUser.fullName,
-                userName:newUser.userName,
-                email:newUser.email,
-                bio:newUser.bio,
-                userProfilePic:newUser.userProfilePic
-            })
+        });
 
-        } else{
-            return res.status(400).json({error:'invalled user data'})
+        // Save the new user to the database
+        await newUser.save();
+        console.log({message: "Signup done!!!!!!!!!"});
+
+        // If the user is successfully created, set the token and respond
+        if (newUser) {
+            jwttokenAndSetCookie(newUser._id, res);
+            res.status(201).json({
+                _id: newUser._id,
+                fullName: newUser.fullName,
+                userName: newUser.userName,
+                email: newUser.email,
+                bio: newUser.bio,
+                userProfilePic: newUser.userProfilePic,
+            });
+        } else {
+            return res.status(400).json({error: 'Invalid user data'});
         }
 
     } catch (error) {
-        res.status(500).json({error: error.message})
+        res.status(500).json({error: error.message});
         console.log('Error in signUp controller', error);
     }
 };
+
 
 export const loginUser = async(req, res)=>{
     try {
