@@ -8,6 +8,7 @@ import messageRoutes from './routes/messageRoutes.js'
 import {v2 as cloudinary} from 'cloudinary'
 import {app,server} from './socket/socket.js'
 import path from 'path' 
+import cors from 'cors'
 const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
 
@@ -24,6 +25,9 @@ connectToDataBase();
 app.use(express.json({limit: "50mb" }));
 app.use(urlencoded({ extended: true }));
 app.use(cookieparser());
+app.use(cors({
+  origin:"*"
+}))
 
 // ROUTER
 app.use("/api/users", userRoutes);
